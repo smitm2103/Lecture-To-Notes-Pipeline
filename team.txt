@@ -3,7 +3,7 @@ Lecture-to-Notes Pipeline
 MCA Minor Project
 
 Developer 1: Smit Mishra
-Developer 2: [Teammate Name]
+Developer 2: Shivam Joshi
 
 Technologies:
 Python, Whisper AI, Flask, MySQL
