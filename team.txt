@@ -1,0 +1,9 @@
+Lecture-to-Notes Pipeline
+
+MCA Minor Project
+
+Developer 1: Smit Mishra
+Developer 2: [Teammate Name]
+
+Technologies:
+Python, Whisper AI, Flask, MySQL
