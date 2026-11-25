@@ -1,0 +1,9 @@
+yt-dlp
+faster-whisper
+pandas
+pydantic
+flask
+sqlalchemy
+mysql-connector-python
+python-dotenv
+pytest
