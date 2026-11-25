@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecture to Notes Pipeline</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #26354a;
+        }
+
+        label {
+            display: block;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 25px;
+            padding: 12px;
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            background: #e8f5e9;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Lecture to Notes Pipeline</h1>
+
+    <p>Upload a lecture recording or paste a lecture link.</p>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <label for="title">Lecture Title</label>
+        <input
+            type="text"
+            id="title"
+            name="title"
+            placeholder="Enter lecture title"
+            required
+        >
+
+        <label for="media">Upload MP3 or MP4</label>
+        <input
+            type="file"
+            id="media"
+            name="media"
+            accept=".mp3,.mp4"
+        >
+
+        <label for="lecture_url">Or paste lecture URL</label>
+        <input
+            type="url"
+            id="lecture_url"
+            name="lecture_url"
+            placeholder="https://..."
+        >
+
+        <button type="submit">Submit Lecture</button>
+
+    </form>
+
+    {% if message %}
+        <div class="message">
+            {{ message }}
+        </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>

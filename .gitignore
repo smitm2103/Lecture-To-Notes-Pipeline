@@ -1,3 +1,16 @@
+
+# Environment and secrets
+.env
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Uploaded lecture media
+data/raw/
+
+
 # Protect your password
 .env
 .venv/
