@@ -2,6 +2,7 @@
 from faster_whisper import WhisperModel
 from pathlib import Path
 
+
 class TranscriptionEngine:
 
     def __init__(self, model_size="base"):
@@ -43,6 +44,12 @@ class TranscriptionEngine:
             })
 
             full_text.append(text)
+
+        # Check after transcription is complete
+        if not results:
+            raise RuntimeError(
+                "No speech detected in the audio file."
+            )
 
         return {
             "language": info.language,

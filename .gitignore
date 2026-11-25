@@ -221,3 +221,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# LectureFlow generated files
+data/raw/
+data/processed/
+data/generated_notes/
