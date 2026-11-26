@@ -1,0 +1,2582 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>LectureFlow | AI Lecture to Notes</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* LECTURE DETAILS OVERLAY */
+
+.lecture-details {
+    position: fixed;
+    inset: 3vh 3vw;
+    z-index: 1000;
+    background: #0d1525;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 30px;
+    overflow-y: auto;
+    box-shadow: 0 20px 80px #000000aa;
+}
+
+.lecture-details h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #c4b5fd;
+}
+
+.lecture-details h3 {
+    font-size: 17px;
+    margin-top: 28px;
+    margin-bottom: 12px;
+    color: var(--text);
+}
+
+.lecture-details p {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.lecture-details pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+}
+
+.lecture-close {
+    position: sticky;
+    top: 0;
+    float: right;
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 17px;
+    font-weight: 600;
+    z-index: 2;
+}
+
+.lecture-close:hover {
+    background: #7045d0;
+}
+
+@media (max-width: 700px) {
+    .lecture-details {
+        inset: 1vh 1vw;
+        padding: 18px;
+    }
+}
+        :root {
+            --bg: #090d18;
+            --sidebar: #0d1321;
+            --surface: #111a2b;
+            --surface-light: #172237;
+            --border: #202d43;
+            --text: #f1f5ff;
+            --muted: #8b98ad;
+            --purple: #8b5cf6;
+            --cyan: #38bdf8;
+            --green: #34d399;
+            --red: #fb7185;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            width: 250px;
+            background: var(--sidebar);
+            border-right: 1px solid var(--border);
+            padding: 28px 18px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 10px;
+            margin-bottom: 42px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
+            display: grid;
+            place-items: center;
+            font-size: 21px;
+            background: linear-gradient(135deg, #8b5cf6, #4f46e5);
+            box-shadow: 0 5px 25px #8b5cf633;
+        }
+
+        .brand h2 {
+            font-size: 18px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand span {
+            display: block;
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+            margin-top: 3px;
+        }
+
+        .menu-label {
+            font-size: 10px;
+            color: #63728a;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 0 12px;
+            margin-bottom: 12px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: var(--muted);
+            padding: 12px 14px;
+            display: flex;
+            gap: 13px;
+            align-items: center;
+            border-radius: 10px;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            background: #8b5cf61c;
+            color: #c4b5fd;
+        }
+
+        .nav-icon {
+            font-size: 17px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+
+        .help-card {
+            background: linear-gradient(135deg, #231b40, #15233a);
+            border: 1px solid #44316c;
+            border-radius: 13px;
+            padding: 17px;
+        }
+
+        .help-card h4 {
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .help-card p {
+            color: #a9a7bd;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        /* MAIN CONTENT */
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 30px 42px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 38px;
+            gap: 20px;
+        }
+
+        .breadcrumb {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb span {
+            color: #c4b5fd;
+        }
+
+        .topbar h1 {
+            font-size: 24px;
+            letter-spacing: -0.8px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .avatar {
+            width: 39px;
+            height: 39px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #2563eb);
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+        }
+
+        .profile-info strong {
+            display: block;
+            font-size: 12px;
+        }
+
+        .profile-info small {
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        /* WELCOME */
+
+        .welcome {
+            margin-bottom: 28px;
+        }
+
+        .welcome h2 {
+            font-size: 27px;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+        }
+
+        .welcome h2 span {
+            color: #a78bfa;
+        }
+
+        .welcome p {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* STATISTICS */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 17px;
+            margin-bottom: 27px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 21px;
+            border-radius: 15px;
+            transition: 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: #6650a8;
+            transform: translateY(-2px);
+        }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 17px;
+        }
+
+        .stat-icon {
+            width: 37px;
+            height: 37px;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            font-size: 17px;
+        }
+
+        .purple {
+            background: #8b5cf626;
+            color: #a78bfa;
+        }
+
+        .blue {
+            background: #38bdf81e;
+            color: #38bdf8;
+        }
+
+        .green {
+            background: #34d3991e;
+            color: #34d399;
+        }
+
+        .stat-card h3 {
+            font-size: 27px;
+            margin-bottom: 4px;
+        }
+
+        .stat-card p {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* UPLOAD SECTION */
+
+        .section-title {
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .upload-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 17px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        /* YOUTUBE CARD */
+
+        .youtube-card {
+            background: #0d1525;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 22px;
+            margin-bottom: 22px;
+        }
+
+        .youtube-heading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .youtube-icon {
+            font-size: 23px;
+            color: #ff4545;
+        }
+
+        .youtube-heading h3 {
+            font-size: 15px;
+        }
+
+        .youtube-card p {
+            color: var(--muted);
+            font-size: 11px;
+            margin-bottom: 16px;
+            line-height: 1.7;
+        }
+
+        .youtube-input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .youtube-input {
+            flex: 1;
+            min-width: 0;
+            background: #111a2b;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 13px 14px;
+            color: var(--text);
+            outline: none;
+            font-size: 12px;
+        }
+
+        .youtube-input:focus {
+            border-color: var(--purple);
+        }
+
+        .youtube-input::placeholder {
+            color: #65738a;
+        }
+
+        .paste-btn {
+            background: #202d43;
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 9px;
+            padding: 0 18px;
+            font-size: 11px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .paste-btn:hover {
+            background: #293951;
+        }
+
+        .youtube-process {
+            margin-top: 13px;
+        }
+
+        .youtube-message {
+            margin-top: 12px;
+            font-size: 11px;
+            overflow-wrap: anywhere;
+        }
+
+        /* DIVIDER */
+
+        .or-divider {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+            color: #65738a;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* FILE UPLOAD */
+
+        .upload-box {
+            border: 1px dashed #53617b;
+            background: #0d1525;
+            border-radius: 13px;
+            min-height: 225px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 25px;
+            transition: 0.2s;
+        }
+
+        .upload-box.dragover {
+            border-color: var(--purple);
+            background: #8b5cf615;
+        }
+
+        .upload-icon {
+            width: 57px;
+            height: 57px;
+            border-radius: 16px;
+            background: #8b5cf622;
+            display: grid;
+            place-items: center;
+            font-size: 26px;
+            margin-bottom: 16px;
+        }
+
+        .upload-box h3 {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .upload-box p {
+            color: var(--muted);
+            font-size: 11px;
+            margin-bottom: 18px;
+            line-height: 1.7;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #8b5cf6, #6d4bd8);
+            border: none;
+            color: white;
+            border-radius: 9px;
+            padding: 11px 22px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 5px 20px #8b5cf633;
+            transition: 0.2s;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 25px #8b5cf655;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            font-size: 12px;
+            color: var(--green);
+            overflow-wrap: anywhere;
+        }
+
+        .supported {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .supported span {
+            color: var(--muted);
+            background: #19243a;
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+        }
+
+        /* RECENT FILES */
+
+        .recent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .view-all {
+            color: #a78bfa;
+            text-decoration: none;
+            font-size: 11px;
+        }
+
+        .recent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .recent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 19px;
+        }
+
+        .recent-left {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            min-width: 0;
+        }
+
+        .file-icon {
+            width: 39px;
+            height: 39px;
+            border-radius: 10px;
+            background: #8b5cf61c;
+            display: grid;
+            place-items: center;
+            color: #bda8ff;
+            flex-shrink: 0;
+        }
+
+        .recent-left h4 {
+            font-size: 12px;
+            margin-bottom: 5px;
+            overflow-wrap: anywhere;
+        }
+
+        .recent-left p {
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .status {
+            font-size: 10px;
+            color: var(--green);
+            background: #34d39918;
+            padding: 6px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .empty-message {
+            color: var(--muted);
+            font-size: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+        }
+
+        footer {
+            margin-top: 35px;
+            padding: 18px 0;
+            border-top: 1px solid var(--border);
+            color: #65738a;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        /* RESPONSIVE DESIGN */
+
+        @media (max-width: 1000px) {
+            .sidebar {
+                width: 210px;
+            }
+
+            .main {
+                padding: 25px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .sidebar {
+                width: 68px;
+                padding: 22px 9px;
+            }
+
+            .brand {
+                justify-content: center;
+                padding: 0;
+            }
+
+            .brand h2,
+            .menu-label,
+            .nav-text,
+            .sidebar-bottom {
+                display: none;
+            }
+
+            .nav a {
+                justify-content: center;
+                padding: 13px 5px;
+            }
+
+            .main {
+                padding: 22px 15px;
+            }
+
+            .topbar h1 {
+                font-size: 19px;
+            }
+
+            .profile-info {
+                display: none;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-card h3 {
+                font-size: 23px;
+            }
+
+            .welcome h2 {
+                font-size: 22px;
+            }
+
+            .upload-card {
+                padding: 13px;
+            }
+
+            .upload-box {
+                min-height: 220px;
+            }
+
+            .recent-item {
+                padding: 13px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .youtube-input-row {
+                flex-direction: column;
+            }
+
+            .paste-btn {
+                padding: 11px;
+            }
+
+            .recent-item {
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .sidebar {
+                width: 55px;
+            }
+
+            .brand-icon {
+                width: 35px;
+                height: 35px;
+            }
+
+            .recent-left h4 {
+                font-size: 11px;
+            }
+        }
+
+
+/* QUIZ INTERFACE */
+
+.quiz-section {
+    margin-top: 30px;
+    padding: 22px;
+    background: #111a2b;
+    border: 1px solid #44316c;
+    border-radius: 14px;
+}
+
+.quiz-section h3 {
+    margin-top: 0;
+    color: #c4b5fd;
+}
+
+.quiz-description {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 10px 0 18px;
+}
+
+.quiz-action {
+    background: linear-gradient(135deg, #8b5cf6, #6d4bd8);
+    color: white;
+    border: none;
+    border-radius: 9px;
+    padding: 11px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    margin: 8px 0;
+}
+
+.quiz-action:hover {
+    filter: brightness(1.12);
+}
+
+.quiz-question {
+    background: #0d1525;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 17px;
+    margin-top: 15px;
+}
+
+.quiz-question h4 {
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 14px;
+}
+
+.quiz-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px;
+    margin-top: 7px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.quiz-option:hover {
+    border-color: var(--purple);
+    color: var(--text);
+}
+
+.quiz-option input {
+    accent-color: var(--purple);
+    margin-top: 2px;
+}
+
+.quiz-message {
+    font-size: 12px;
+    margin-top: 12px;
+    color: var(--muted);
+}
+
+.quiz-result {
+    background: #172237;
+    border: 1px solid #44316c;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.quiz-score {
+    font-size: 25px;
+    font-weight: 800;
+    color: #a78bfa;
+    margin: 10px 0;
+}
+
+.quiz-explanation {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+    margin-top: 10px;
+}
+
+.quiz-correct {
+    color: #34d399;
+}
+
+.quiz-incorrect {
+    color: #fb7185;
+}
+
+.quiz-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.quiz-result {
+    scroll-margin-top: 30px;
+}
+
+/* QUIZ ATTEMPT HISTORY */
+
+.quiz-history {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.quiz-history h3 {
+    color: #c4b5fd;
+    margin-bottom: 15px;
+}
+
+.quiz-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 13px;
+    margin-top: 10px;
+    background: #0d1525;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    font-size: 12px;
+}
+
+.quiz-history-score {
+    color: #a78bfa;
+    font-weight: 700;
+}
+
+.quiz-history-date {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+.quiz-history-label {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.quiz-history-empty {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">✦</div>
+
+            <div>
+                <h2>LectureFlow</h2>
+                <span>AI LEARNING SPACE</span>
+            </div>
+        </div>
+
+        <div class="menu-label">WORKSPACE</div>
+
+        
+<nav class="nav">
+
+    <a href="#" id="dashboardNav" class="active">
+        <span class="nav-icon">▦</span>
+        <span class="nav-text">Dashboard</span>
+    </a>
+
+    <a href="#upload" id="addLectureNav">
+        <span class="nav-icon">⇧</span>
+        <span class="nav-text">Add Lecture</span>
+    </a>
+
+    <a href="#recent" id="myLecturesNav">
+        <span class="nav-icon">▤</span>
+        <span class="nav-text">My Lectures</span>
+    </a>
+
+    <a href="#" id="myNotesNav">
+        <span class="nav-icon">✎</span>
+        <span class="nav-text">My Notes</span>
+    </a>
+
+</nav>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="help-card">
+                <h4>✦ AI-powered learning</h4>
+                <p>
+                    Turn your lectures into organized notes
+                    and make learning easier.
+                </p>
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div>
+                <div class="breadcrumb">
+                    Workspace / <span>Dashboard</span>
+                </div>
+
+                <h1>Dashboard</h1>
+            </div>
+
+            <div class="profile">
+                <div class="avatar">S</div>
+
+                <div class="profile-info">
+                    <strong>Welcome back</strong>
+                    <small>Your learning workspace</small>
+                </div>
+            </div>
+
+        </header>
+
+
+        <!-- WELCOME -->
+
+        <section class="welcome">
+
+            <h2>Turn knowledge into <span>clarity.</span> ✦</h2>
+
+            <p>
+                Import your YouTube lectures or upload recordings.
+                Let AI transform them into meaningful notes.
+            </p>
+
+        </section>
+
+
+        <!-- STATISTICS -->
+
+        <section class="stats">
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+                    <p>Total Lectures</p>
+                    <div class="stat-icon purple">▤</div>
+                </div>
+
+                <h3 id="totalLectures">0</h3>
+                <p>Your processed lectures</p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+                    <p>Transcriptions</p>
+                    <div class="stat-icon blue">✎</div>
+                </div>
+
+                <h3 id="totalTranscriptions">0</h3>
+                <p>Successfully transcribed lectures</p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+                    <p>AI Processing</p>
+                    <div class="stat-icon green">✦</div>
+                </div>
+
+                <h3>Ready</h3>
+                <p>Workspace available</p>
+
+            </div>
+
+        </section>
+
+
+        <!-- ADD LECTURE -->
+
+        <section id="upload">
+
+            <h3 class="section-title">Add a new lecture</h3>
+
+            <div class="upload-card">
+
+                <!-- YOUTUBE INPUT -->
+
+                <div class="youtube-card">
+
+                    <div class="youtube-heading">
+                        <span class="youtube-icon">▶</span>
+                        <h3>Import from YouTube</h3>
+                    </div>
+
+                    <p>
+                        Paste a YouTube lecture URL to generate
+                        its transcript and AI-powered notes.
+                    </p>
+
+                    <div class="youtube-input-row">
+
+                        <input
+                            type="url"
+                            id="youtubeUrl"
+                            class="youtube-input"
+                            placeholder="https://www.youtube.com/watch?v=..."
+                        >
+
+                        <button
+                            type="button"
+                            class="paste-btn"
+                            id="pasteYoutubeBtn"
+                        >
+                            Paste Link
+                        </button>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="upload-btn youtube-process"
+                        id="processYoutubeBtn"
+                    >
+                        ▶ Process YouTube Lecture
+                    </button>
+
+                    <div
+                        class="youtube-message"
+                        id="youtubeMessage"
+                        aria-live="polite"
+                    ></div>
+
+                </div>
+
+
+                <!-- DIVIDER -->
+
+                <div class="or-divider">
+                    OR UPLOAD A FILE
+                </div>
+
+
+                <!-- FILE UPLOAD -->
+
+                <div class="upload-box" id="dropZone">
+
+                    <div class="upload-icon">⇧</div>
+
+                    <h3>Drop your lecture file here</h3>
+
+                    <p>
+                        Upload an audio or video recording to begin.<br>
+                        Select a file from your device.
+                    </p>
+
+                    <input
+                        type="file"
+                        id="fileInput"
+                        accept=".mp3,.wav,.m4a,.mp4,.mpeg,.mpga,.webm,.ogg"
+                        hidden
+                    >
+
+                    <button class="upload-btn" id="browseBtn">
+                        Browse Files
+                    </button>
+
+                    <div class="file-info" id="fileInfo">
+                        No file selected
+                    </div>
+
+                    <div class="supported">
+                        <span>MP3</span>
+                        <span>WAV</span>
+                        <span>M4A</span>
+                        <span>MP4</span>
+                        <span>WEBM</span>
+                        <span>OGG</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- RECENT LECTURES -->
+
+        <section id="recent">
+
+            <div class="recent-header">
+
+                <h3 class="section-title">Recent lectures</h3>
+
+                <a href="#recent" class="view-all">View all →</a>
+
+            </div>
+
+            <div class="recent-list" id="recentList">
+
+                <div class="empty-message" id="emptyMessage">
+                    Loading your lectures...
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <footer>
+            © 2026 LectureFlow · AI-powered Lecture to Notes Platform
+        </footer>
+
+    </main>
+
+</div>
+
+
+<script>
+
+// ==========================================
+// LECTUREFLOW - COMPLETE FRONTEND JAVASCRIPT
+// ==========================================
+
+
+// ELEMENT REFERENCES
+
+const fileInput = document.getElementById("fileInput");
+const browseBtn = document.getElementById("browseBtn");
+const dropZone = document.getElementById("dropZone");
+const fileInfo = document.getElementById("fileInfo");
+const recentList = document.getElementById("recentList");
+
+const youtubeUrl = document.getElementById("youtubeUrl");
+const pasteYoutubeBtn = document.getElementById("pasteYoutubeBtn");
+const processYoutubeBtn = document.getElementById("processYoutubeBtn");
+const youtubeMessage = document.getElementById("youtubeMessage");
+
+const totalLecturesElement = document.getElementById("totalLectures");
+const totalTranscriptionsElement = document.getElementById("totalTranscriptions");
+
+const dashboardNav = document.getElementById("dashboardNav");
+const addLectureNav = document.getElementById("addLectureNav");
+const myLecturesNav = document.getElementById("myLecturesNav");
+const myNotesNav = document.getElementById("myNotesNav");
+
+const recentHeading = document.querySelector(".recent-header .section-title");
+const viewAllLink = document.querySelector(".view-all");
+
+const uploadSection = document.getElementById("upload");
+const recentSection = document.getElementById("recent");
+
+
+// APPLICATION STATE
+
+let allLectures = [];
+let currentView = "dashboard";
+
+const allowedExtensions = [
+    "mp3", "mp4", "wav", "m4a",
+    "webm", "mpeg", "mpga", "ogg"
+];
+
+
+// ==========================================
+// NAVIGATION
+// ==========================================
+
+function setActiveNav(activeLink) {
+
+    document.querySelectorAll(".nav a").forEach(link => {
+        link.classList.remove("active");
+    });
+
+    activeLink.classList.add("active");
+}
+
+
+function scrollToSection(section) {
+
+    section.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+
+// DASHBOARD
+
+dashboardNav.addEventListener("click", event => {
+
+    event.preventDefault();
+
+    currentView = "dashboard";
+
+    setActiveNav(dashboardNav);
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+    renderLectures();
+
+});
+
+
+// ADD LECTURE
+
+addLectureNav.addEventListener("click", () => {
+
+    currentView = "dashboard";
+
+    setActiveNav(addLectureNav);
+
+    scrollToSection(uploadSection);
+
+});
+
+
+// MY LECTURES
+
+myLecturesNav.addEventListener("click", event => {
+
+    event.preventDefault();
+
+    currentView = "lectures";
+
+    setActiveNav(myLecturesNav);
+
+    renderLectures();
+
+    scrollToSection(recentSection);
+
+});
+
+
+// MY NOTES
+
+myNotesNav.addEventListener("click", event => {
+
+    event.preventDefault();
+
+    currentView = "notes";
+
+    setActiveNav(myNotesNav);
+
+    renderLectures();
+
+    scrollToSection(recentSection);
+
+});
+
+
+// VIEW ALL
+
+viewAllLink.addEventListener("click", event => {
+
+    event.preventDefault();
+
+    currentView = "lectures";
+
+    setActiveNav(myLecturesNav);
+
+    renderLectures();
+
+    scrollToSection(recentSection);
+
+});
+
+
+// ==========================================
+// MESSAGE DISPLAY
+// ==========================================
+
+function showRecentMessage(message) {
+
+    recentList.replaceChildren();
+
+    const emptyMessage = document.createElement("div");
+
+    emptyMessage.className = "empty-message";
+    emptyMessage.textContent = message;
+
+    recentList.appendChild(emptyMessage);
+
+}
+
+
+// ==========================================
+// DATE FORMATTING
+// ==========================================
+
+function formatDate(dateValue) {
+
+    if (!dateValue) {
+        return "Date unavailable";
+    }
+
+    const date = new Date(dateValue.replace(" ", "T"));
+
+    if (Number.isNaN(date.getTime())) {
+        return dateValue;
+    }
+
+    return date.toLocaleString();
+
+}
+
+
+// ==========================================
+// CREATE LECTURE ITEM
+// ==========================================
+
+function createLectureItem(lecture) {
+
+    const item = document.createElement("div");
+
+    item.className = "recent-item";
+    item.style.cursor = "pointer";
+    item.title = "Click to view lecture notes and transcript";
+
+    const left = document.createElement("div");
+    left.className = "recent-left";
+
+    const icon = document.createElement("div");
+    icon.className = "file-icon";
+    icon.textContent = "♫";
+
+    const details = document.createElement("div");
+
+    const title = document.createElement("h4");
+    title.textContent = lecture.title || "Untitled lecture";
+
+    const meta = document.createElement("p");
+
+    meta.textContent =
+        "Lecture ID: " + lecture.id +
+        " · " + formatDate(lecture.created_at);
+
+    details.appendChild(title);
+    details.appendChild(meta);
+
+    left.appendChild(icon);
+    left.appendChild(details);
+
+    const status = document.createElement("span");
+
+    status.className = "status";
+    status.textContent = lecture.has_notes
+        ? "Notes Generated"
+        : "Transcribed";
+
+    item.appendChild(left);
+    item.appendChild(status);
+
+    item.addEventListener("click", () => {
+        openLectureDetails(lecture.id);
+    });
+
+    return item;
+
+}
+
+
+// ==========================================
+// RENDER LECTURE LIST
+// ==========================================
+
+function renderLectures() {
+
+    recentList.replaceChildren();
+
+    let lecturesToDisplay = allLectures;
+
+    if (currentView === "notes") {
+
+        lecturesToDisplay = allLectures.filter(
+            lecture => lecture.has_notes
+        );
+
+        recentHeading.textContent = "My AI Notes";
+        viewAllLink.style.display = "none";
+
+    } else if (currentView === "lectures") {
+
+        recentHeading.textContent = "My Lectures";
+        viewAllLink.style.display = "none";
+
+    } else {
+
+        recentHeading.textContent = "Recent lectures";
+        viewAllLink.style.display = "inline";
+
+        lecturesToDisplay = allLectures.slice(0, 10);
+    }
+
+    if (lecturesToDisplay.length === 0) {
+
+        showRecentMessage(
+            currentView === "notes"
+                ? "No AI notes available yet. Process a lecture to generate notes."
+                : "Your lectures will appear here after processing."
+        );
+
+        return;
+    }
+
+    lecturesToDisplay.forEach(lecture => {
+
+        const item = createLectureItem(lecture);
+
+        if (currentView === "notes") {
+
+            item.querySelector(".file-icon").textContent = "✦";
+            item.querySelector(".status").textContent = "View AI Notes";
+            item.style.borderColor = "#44316c";
+
+        }
+
+        recentList.appendChild(item);
+
+    });
+
+}
+
+
+// ==========================================
+// LOAD LECTURE DETAILS
+// ==========================================
+
+async function openLectureDetails(lectureId) {
+
+    let panel = document.getElementById("lectureDetails");
+
+    if (!panel) {
+
+        panel = document.createElement("div");
+        panel.id = "lectureDetails";
+        panel.className = "lecture-details";
+
+        document.body.appendChild(panel);
+
+    }
+
+    panel.replaceChildren();
+    panel.style.display = "block";
+
+    const loading = document.createElement("p");
+    loading.textContent = "Loading lecture details...";
+
+    panel.appendChild(loading);
+
+    try {
+
+        const response = await fetch(
+            `/api/lectures/${lectureId}`,
+            {
+                method: "GET",
+                cache: "no-store"
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message || "Unable to load lecture."
+            );
+        }
+
+        const lecture = result.lecture;
+
+        panel.replaceChildren();
+
+        // CLOSE BUTTON
+
+        const closeButton = document.createElement("button");
+
+        closeButton.className = "lecture-close";
+        closeButton.textContent = "✕ Close";
+
+        closeButton.addEventListener("click", () => {
+            panel.style.display = "none";
+        });
+
+        panel.appendChild(closeButton);
+
+        // LECTURE TITLE
+
+        const heading = document.createElement("h2");
+
+        heading.textContent = lecture.title || "Lecture Details";
+
+        panel.appendChild(heading);
+
+        const idText = document.createElement("p");
+
+        idText.textContent =
+            "Lecture ID: " + lecture.id +
+            " · " + formatDate(lecture.created_at);
+
+        panel.appendChild(idText);
+
+        // AI NOTES
+
+        const notesHeading = document.createElement("h3");
+
+        notesHeading.textContent = "✦ AI Generated Notes";
+
+        panel.appendChild(notesHeading);
+
+        const notesContent = document.createElement("pre");
+
+        notesContent.textContent =
+            lecture.notes || "No notes available.";
+
+        panel.appendChild(notesContent);
+
+        // QUIZ SECTION
+
+        const quizSection = document.createElement("section");
+
+        quizSection.className = "quiz-section";
+
+        const quizHeading = document.createElement("h3");
+
+        quizHeading.textContent = "✦ Test Your Knowledge";
+
+        const quizDescription = document.createElement("p");
+
+        quizDescription.className = "quiz-description";
+
+        quizDescription.textContent =
+            "Generate a quiz from this lecture, attempt the questions, and check your score.";
+
+        const generateButton = document.createElement("button");
+
+        generateButton.className = "quiz-action";
+        generateButton.textContent = "✦ Generate / Open Quiz";
+
+        const quizMessage = document.createElement("p");
+
+        quizMessage.className = "quiz-message";
+        quizMessage.setAttribute("aria-live", "polite");
+
+        const quizContent = document.createElement("div");
+
+        // ATTEMPT HISTORY CONTAINER
+
+        const historyContainer = document.createElement("div");
+
+        historyContainer.id = "quiz-history";
+        historyContainer.className = "quiz-history";
+
+        const historyHeading = document.createElement("h3");
+
+        historyHeading.textContent = "Previous Attempts";
+
+        const historyLoading = document.createElement("p");
+
+        historyLoading.className = "quiz-history-empty";
+        historyLoading.textContent = "Loading attempt history...";
+
+        historyContainer.appendChild(historyHeading);
+        historyContainer.appendChild(historyLoading);
+
+        quizSection.appendChild(quizHeading);
+        quizSection.appendChild(quizDescription);
+        quizSection.appendChild(generateButton);
+        quizSection.appendChild(quizMessage);
+        quizSection.appendChild(quizContent);
+        quizSection.appendChild(historyContainer);
+
+        panel.appendChild(quizSection);
+
+        // LOAD ATTEMPT HISTORY
+
+        loadQuizAttemptHistory(lectureId);
+
+        // GENERATE / OPEN QUIZ
+
+        generateButton.addEventListener("click", async () => {
+
+            generateButton.disabled = true;
+
+            quizContent.replaceChildren();
+
+            quizMessage.textContent =
+                "Generating or loading your quiz. Please wait...";
+
+            try {
+
+                const quizResponse = await fetch(
+                    `/api/lectures/${lectureId}/quiz`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            num_questions: 10
+                        })
+                    }
+                );
+
+                const quizData = await quizResponse.json();
+
+                if (!quizResponse.ok || !quizData.success) {
+                    throw new Error(
+                        quizData.message || "Unable to generate quiz."
+                    );
+                }
+
+                quizMessage.textContent =
+                    quizData.message || "Quiz loaded successfully.";
+
+                quizMessage.style.color = "#34d399";
+
+                renderQuizQuestions(
+                    quizContent,
+                    lectureId,
+                    quizData
+                );
+
+            } catch (error) {
+
+                quizMessage.textContent = error.message;
+                quizMessage.style.color = "#fb7185";
+
+            } finally {
+
+                generateButton.disabled = false;
+
+            }
+
+        });
+
+        // TRANSCRIPT
+
+        const transcriptHeading = document.createElement("h3");
+
+        transcriptHeading.textContent = "Lecture Transcript";
+
+        panel.appendChild(transcriptHeading);
+
+        const transcriptContent = document.createElement("pre");
+
+        transcriptContent.textContent =
+            lecture.transcript || "No transcript available.";
+
+        panel.appendChild(transcriptContent);
+
+        panel.scrollTop = 0;
+
+    } catch (error) {
+
+        console.error("Lecture details error:", error);
+
+        panel.replaceChildren();
+
+        const errorMessage = document.createElement("p");
+
+        errorMessage.textContent =
+            "Unable to load lecture details: " + error.message;
+
+        panel.appendChild(errorMessage);
+
+        const closeButton = document.createElement("button");
+
+        closeButton.className = "lecture-close";
+        closeButton.textContent = "✕ Close";
+
+        closeButton.addEventListener("click", () => {
+            panel.style.display = "none";
+        });
+
+        panel.appendChild(closeButton);
+
+    }
+
+}
+
+
+// ==========================================
+// RENDER QUIZ QUESTIONS
+// ==========================================
+
+function renderQuizQuestions(container, lectureId, quizData) {
+
+    container.replaceChildren();
+
+    const questions = quizData.questions || [];
+
+    if (questions.length === 0) {
+
+        const message = document.createElement("p");
+
+        message.className = "quiz-message";
+        message.textContent = "No questions were returned.";
+
+        container.appendChild(message);
+
+        return;
+    }
+
+    const form = document.createElement("form");
+
+    const quizTitle = document.createElement("h3");
+
+    quizTitle.textContent = quizData.title || "Lecture Quiz";
+
+    form.appendChild(quizTitle);
+
+    questions.forEach((question, index) => {
+
+        const questionCard = document.createElement("div");
+
+        questionCard.className = "quiz-question";
+
+        const questionHeading = document.createElement("h4");
+
+        questionHeading.textContent =
+            `${index + 1}. ${question.question}`;
+
+        questionCard.appendChild(questionHeading);
+
+        const options = question.options || {};
+
+        ["A", "B", "C", "D"].forEach(optionKey => {
+
+            const label = document.createElement("label");
+
+            label.className = "quiz-option";
+
+            const radio = document.createElement("input");
+
+            radio.type = "radio";
+            radio.name = `question-${index + 1}`;
+            radio.value = optionKey;
+            radio.required = true;
+
+            const optionText = document.createElement("span");
+
+            optionText.textContent =
+                `${optionKey}. ${options[optionKey] || ""}`;
+
+            label.appendChild(radio);
+            label.appendChild(optionText);
+
+            questionCard.appendChild(label);
+
+        });
+
+        form.appendChild(questionCard);
+
+    });
+
+    const submitButton = document.createElement("button");
+
+    submitButton.type = "submit";
+    submitButton.className = "quiz-action";
+    submitButton.textContent = "Submit Quiz";
+
+    form.appendChild(submitButton);
+
+    const message = document.createElement("p");
+
+    message.className = "quiz-message";
+    message.setAttribute("aria-live", "polite");
+
+    form.appendChild(message);
+
+    container.appendChild(form);
+
+    // SUBMIT QUIZ
+
+    form.addEventListener("submit", async event => {
+
+        event.preventDefault();
+
+        submitButton.disabled = true;
+
+        message.textContent = "Checking your answers...";
+
+        const answers = {};
+
+        for (let index = 1; index <= questions.length; index++) {
+
+            const selected = form.querySelector(
+                `input[name="question-${index}"]:checked`
+            );
+
+            if (!selected) {
+
+                message.textContent =
+                    `Please answer question ${index}.`;
+
+                submitButton.disabled = false;
+
+                return;
+            }
+
+            answers[String(index)] = selected.value;
+
+        }
+
+        try {
+
+            const response = await fetch(
+                `/api/lectures/${lectureId}/quiz/submit`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        answers: answers
+                    })
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message || "Quiz submission failed."
+                );
+            }
+
+            displayQuizResults(container, result);
+
+            // REFRESH HISTORY AFTER SUBMISSION
+
+            await loadQuizAttemptHistory(lectureId);
+
+        } catch (error) {
+
+            message.textContent = error.message;
+            message.style.color = "#fb7185";
+
+            submitButton.disabled = false;
+
+        }
+
+    });
+
+}
+
+
+// ==========================================
+// DISPLAY QUIZ RESULTS
+// ==========================================
+
+function displayQuizResults(container, result) {
+
+    container.replaceChildren();
+
+    const resultCard = document.createElement("div");
+
+    resultCard.className = "quiz-result";
+
+    const heading = document.createElement("h3");
+
+    heading.textContent = "✦ Your Score";
+
+    const score = document.createElement("div");
+
+    score.className = "quiz-score";
+
+    score.textContent =
+        `${result.score} / ${result.total_questions}`;
+
+    const percentage = document.createElement("p");
+
+    percentage.textContent =
+        `Your score: ${result.percentage}%`;
+
+    const feedback = document.createElement("p");
+
+    feedback.className = "quiz-description";
+
+    if (result.percentage >= 80) {
+
+        feedback.textContent = "Excellent work! Keep it up.";
+
+    } else if (result.percentage >= 50) {
+
+        feedback.textContent =
+            "Good effort! Review the explanations below.";
+
+    } else {
+
+        feedback.textContent =
+            "Keep practising. Review the explanations and try again.";
+
+    }
+
+    resultCard.appendChild(heading);
+    resultCard.appendChild(score);
+    resultCard.appendChild(percentage);
+    resultCard.appendChild(feedback);
+
+    container.appendChild(resultCard);
+
+    // CORRECT ANSWERS AND EXPLANATIONS
+
+    (result.results || []).forEach((item, index) => {
+
+        const card = document.createElement("div");
+
+        card.className = "quiz-question";
+
+        const question = document.createElement("h4");
+
+        question.textContent =
+            `${index + 1}. ${item.question}`;
+
+        const status = document.createElement("p");
+
+        status.className = item.is_correct
+            ? "quiz-correct"
+            : "quiz-incorrect";
+
+        status.textContent = item.is_correct
+            ? "✓ Correct"
+            : "✕ Incorrect";
+
+        const answer = document.createElement("p");
+
+        answer.className = "quiz-description";
+
+        answer.textContent =
+            `Your answer: ${item.selected_answer} · Correct answer: ${item.correct_answer}`;
+
+        const explanation = document.createElement("p");
+
+        explanation.className = "quiz-explanation";
+
+        explanation.textContent =
+            "Explanation: " + item.explanation;
+
+        card.appendChild(question);
+        card.appendChild(status);
+        card.appendChild(answer);
+        card.appendChild(explanation);
+
+        container.appendChild(card);
+
+    });
+
+    // SCROLL TO SCORE AFTER RESULTS ARE RENDERED
+
+    resultCard.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+
+}
+
+
+// ==========================================
+// LOAD QUIZ ATTEMPT HISTORY
+// ==========================================
+
+async function loadQuizAttemptHistory(lectureId) {
+
+    const historyContainer =
+        document.getElementById("quiz-history");
+
+    if (!historyContainer) return;
+
+    try {
+
+        const response = await fetch(
+            `/api/lectures/${lectureId}/quiz/attempts`,
+            {
+                method: "GET",
+                cache: "no-store"
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message || "Unable to load quiz history."
+            );
+        }
+
+        historyContainer.replaceChildren();
+
+        const heading = document.createElement("h3");
+
+        heading.textContent =
+            `Previous Attempts (${result.total_attempts})`;
+
+        historyContainer.appendChild(heading);
+
+        if (!result.attempts || result.attempts.length === 0) {
+
+            const emptyMessage = document.createElement("p");
+
+            emptyMessage.className = "quiz-history-empty";
+
+            emptyMessage.textContent =
+                "No quiz attempts yet. Complete a quiz to see your history.";
+
+            historyContainer.appendChild(emptyMessage);
+
+            return;
+        }
+
+        result.attempts.forEach(attempt => {
+
+            const item = document.createElement("div");
+
+            item.className = "quiz-history-item";
+
+            const details = document.createElement("div");
+
+            const score = document.createElement("div");
+
+            score.className = "quiz-history-score";
+
+            score.textContent =
+                `${attempt.score}/${attempt.total_questions} (${attempt.percentage}%)`;
+
+            const date = document.createElement("div");
+
+            date.className = "quiz-history-date";
+
+            date.textContent = attempt.created_at
+                ? new Date(attempt.created_at).toLocaleString()
+                : "Date unavailable";
+
+            details.appendChild(score);
+            details.appendChild(date);
+
+            const label = document.createElement("span");
+
+            label.className = "quiz-history-label";
+
+            label.textContent =
+                `Attempt #${attempt.attempt_id}`;
+
+            item.appendChild(details);
+            item.appendChild(label);
+
+            historyContainer.appendChild(item);
+
+        });
+
+    } catch (error) {
+
+        console.error("Quiz history error:", error);
+
+        historyContainer.replaceChildren();
+
+        const heading = document.createElement("h3");
+
+        heading.textContent = "Previous Attempts";
+
+        const errorMessage = document.createElement("p");
+
+        errorMessage.className = "quiz-history-empty";
+
+        errorMessage.textContent =
+            "Unable to load attempt history.";
+
+        historyContainer.appendChild(heading);
+        historyContainer.appendChild(errorMessage);
+
+    }
+
+}
+
+
+// ==========================================
+// CLOSE LECTURE DETAILS USING ESCAPE KEY
+// ==========================================
+
+document.addEventListener("keydown", event => {
+
+    if (event.key === "Escape") {
+
+        const panel = document.getElementById("lectureDetails");
+
+        if (panel) {
+            panel.style.display = "none";
+        }
+
+    }
+
+});
+
+
+// ==========================================
+// LOAD DASHBOARD FROM MYSQL
+// ==========================================
+
+async function loadDashboard() {
+
+    try {
+
+        const response = await fetch("/api/lectures", {
+            method: "GET",
+            cache: "no-store"
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message || "Unable to load lectures."
+            );
+        }
+
+        totalLecturesElement.textContent =
+            result.total_lectures ?? 0;
+
+        totalTranscriptionsElement.textContent =
+            result.total_transcriptions ?? 0;
+
+        allLectures = result.lectures || [];
+
+        renderLectures();
+
+    } catch (error) {
+
+        console.error("Dashboard loading error:", error);
+
+        allLectures = [];
+
+        showRecentMessage(
+            "Unable to load lecture history. Please refresh the page."
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// FILE BROWSE
+// ==========================================
+
+browseBtn.addEventListener("click", () => {
+
+    fileInput.click();
+
+});
+
+
+fileInput.addEventListener("change", event => {
+
+    handleFiles(event.target.files);
+
+    fileInput.value = "";
+
+});
+
+
+// ==========================================
+// AUDIO / VIDEO FILE UPLOAD
+// ==========================================
+
+async function handleFiles(files) {
+
+    if (!files || files.length === 0) return;
+
+    for (const file of Array.from(files)) {
+
+        const extension = file.name
+            .split(".")
+            .pop()
+            .toLowerCase();
+
+        if (!allowedExtensions.includes(extension)) {
+
+            fileInfo.textContent =
+                "Unsupported file format: " + file.name;
+
+            fileInfo.style.color = "#fb7185";
+
+            continue;
+
+        }
+
+        fileInfo.textContent =
+            "Uploading and processing: " + file.name;
+
+        fileInfo.style.color = "#60a5fa";
+
+        browseBtn.disabled = true;
+
+        try {
+
+            const formData = new FormData();
+
+            formData.append("file", file);
+
+            const response = await fetch("/api/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message || "Upload failed."
+                );
+            }
+
+            fileInfo.textContent =
+                "Successfully processed: " + file.name;
+
+            fileInfo.style.color = "#34d399";
+
+            await loadDashboard();
+
+        } catch (error) {
+
+            fileInfo.textContent =
+                "Upload failed: " + error.message;
+
+            fileInfo.style.color = "#fb7185";
+
+            console.error("Upload error:", error);
+
+            await loadDashboard();
+
+        } finally {
+
+            browseBtn.disabled = false;
+
+        }
+
+    }
+
+}
+
+
+// ==========================================
+// YOUTUBE URL VALIDATION
+// ==========================================
+
+function isValidYoutubeUrl(value) {
+
+    try {
+
+        const url = new URL(value);
+
+        const host = url.hostname.toLowerCase();
+
+        const isYoutubeHost =
+            host === "youtube.com" ||
+            host.endsWith(".youtube.com") ||
+            host === "youtu.be" ||
+            host.endsWith(".youtu.be");
+
+        if (!isYoutubeHost) return false;
+
+        if (
+            host === "youtu.be" ||
+            host.endsWith(".youtu.be")
+        ) {
+            return url.pathname.length > 1;
+        }
+
+        return (
+
+            (
+                url.pathname === "/watch" &&
+                url.searchParams.has("v")
+            ) ||
+
+            (
+                url.pathname.startsWith("/shorts/") &&
+                url.pathname.length > 8
+            ) ||
+
+            (
+                url.pathname.startsWith("/embed/") &&
+                url.pathname.length > 7
+            ) ||
+
+            (
+                url.pathname.startsWith("/live/") &&
+                url.pathname.length > 6
+            )
+
+        );
+
+    } catch {
+
+        return false;
+
+    }
+
+}
+
+
+// ==========================================
+// PASTE YOUTUBE LINK
+// ==========================================
+
+pasteYoutubeBtn.addEventListener("click", async () => {
+
+    try {
+
+        const text = await navigator.clipboard.readText();
+
+        youtubeUrl.value = text.trim();
+
+        youtubeMessage.textContent =
+            "YouTube link pasted successfully.";
+
+        youtubeMessage.style.color = "#34d399";
+
+    } catch (error) {
+
+        youtubeMessage.textContent =
+            "Clipboard access unavailable. Please paste the link manually.";
+
+        youtubeMessage.style.color = "#fb7185";
+
+    }
+
+});
+
+
+// ==========================================
+// PROCESS YOUTUBE LECTURE
+// ==========================================
+
+processYoutubeBtn.addEventListener("click", async () => {
+
+    const link = youtubeUrl.value.trim();
+
+    if (!link) {
+
+        youtubeMessage.textContent =
+            "Please enter a YouTube lecture URL.";
+
+        youtubeMessage.style.color = "#fb7185";
+
+        return;
+
+    }
+
+    if (!isValidYoutubeUrl(link)) {
+
+        youtubeMessage.textContent =
+            "Please enter a valid YouTube lecture URL.";
+
+        youtubeMessage.style.color = "#fb7185";
+
+        return;
+
+    }
+
+    processYoutubeBtn.disabled = true;
+
+    youtubeMessage.textContent =
+        "Processing YouTube lecture. Please wait...";
+
+    youtubeMessage.style.color = "#60a5fa";
+
+    try {
+
+        const response = await fetch("/api/youtube", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                url: link
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message || "YouTube processing failed."
+            );
+        }
+
+        youtubeMessage.textContent =
+            result.message ||
+            "YouTube lecture processed successfully.";
+
+        youtubeMessage.style.color = "#34d399";
+
+        await loadDashboard();
+
+        youtubeUrl.value = "";
+
+    } catch (error) {
+
+        youtubeMessage.textContent =
+            "Unable to process lecture: " + error.message;
+
+        youtubeMessage.style.color = "#fb7185";
+
+        console.error("YouTube processing error:", error);
+
+        await loadDashboard();
+
+    } finally {
+
+        processYoutubeBtn.disabled = false;
+
+    }
+
+});
+
+
+// ==========================================
+// DRAG AND DROP
+// ==========================================
+
+["dragenter", "dragover"].forEach(eventName => {
+
+    dropZone.addEventListener(eventName, event => {
+
+        event.preventDefault();
+
+        dropZone.classList.add("dragover");
+
+    });
+
+});
+
+
+["dragleave", "drop"].forEach(eventName => {
+
+    dropZone.addEventListener(eventName, event => {
+
+        event.preventDefault();
+
+        dropZone.classList.remove("dragover");
+
+    });
+
+});
+
+
+dropZone.addEventListener("drop", event => {
+
+    handleFiles(event.dataTransfer.files);
+
+});
+
+
+// ==========================================
+// INITIALIZE APPLICATION
+// ==========================================
+
+loadDashboard();
+
+</script>
+
+</body>
+</html>

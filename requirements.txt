@@ -1,3 +1,4 @@
+
 yt-dlp
 faster-whisper
 pandas
@@ -5,5 +6,6 @@ pydantic
 flask
 sqlalchemy
 mysql-connector-python
+pymysql
 python-dotenv
 pytest

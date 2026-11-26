@@ -11,7 +11,7 @@ load_dotenv(PROJECT_ROOT / ".env")
 
 class LectureNotesGenerator:
 
-    def __init__(self, model="gemini-3.8-flash"):
+    def __init__(self, model="gemini-3.5-flash-lite"):
 
         api_key = os.getenv("GEMINI_API_KEY")
 

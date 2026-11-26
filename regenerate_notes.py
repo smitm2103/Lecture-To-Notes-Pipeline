@@ -4,6 +4,8 @@ from pathlib import Path
 
 from notes_generation.generator import LectureNotesGenerator
 from notes_generation.notes_saver import NotesSaver
+from db_config import SessionLocal
+from db.models import Lecture, Note
 
 
 def main():
@@ -47,6 +49,34 @@ def main():
         notes,
         filename=transcript_file.stem
     )
+    db = SessionLocal()
+
+    try:
+        lecture = Lecture(
+            title=transcript_file.stem,
+            file_path=str(transcript_file),
+            transcript=transcript
+        )
+
+        db.add(lecture)
+        db.flush()
+
+        note = Note(
+            lecture_id=lecture.id,
+            content=notes
+        )
+
+        db.add(note)
+        db.commit()
+
+        print(f"Lecture saved in MySQL with ID: {lecture.id}")
+
+    except Exception as e:
+        db.rollback()
+        print(f"Database saving failed: {e}")
+
+    finally:
+        db.close()
 
     print("\nNotes regenerated successfully!")
     print(f"Saved file: {notes_file}")
